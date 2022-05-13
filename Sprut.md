@@ -115,7 +115,12 @@ sudo NODE_ENV=production forever start dist/app.js
 
 * Upload **store** folder into the server root ( Like /home/ubuntu/ )
 
-* You need to open the file — `sudo vi spurtcommerce/store/src/environments/environment.prod.ts` and then change the below URLs.
+* You need to open the file 
+```
+sudo vi spurtcommerce/store/src/environments/environment.prod.ts
+sudo vi spurtcommerce/store/src/environments/environment.prod.ts
+```
+and then change the below URLs.
 
 ![image](./Images/Capture1.PNG)
 
@@ -154,10 +159,10 @@ export const environment = {
 export const environment = {
 
     production: true,
-    baseUrl: 'http://localhost:9000/api',
-    imageUrl: 'http://localhost:9000/api/media/image-resize',
-    productUrl: 'http://localhost:4205/#/',
-    pluginUrl: 'http://localhost:9000'
+    baseUrl: 'http://localhost/backend/api',
+    imageUrl: 'http://localhost/backend/api/media/image-resize',
+    productUrl: 'http://localhost/',
+    pluginUrl: 'http://localhost/backend/'
 
 };
 
