@@ -1,0 +1,56 @@
+---
+- name: Installing Spurt Commerce
+  hosts: all
+  become: yes
+  tasks:
+    - name: Updating Repo URLs
+      apt:
+        update_cache: yes
+        state: present
+    - name: Downloading NodeJs
+      get_url: 
+        url: https://deb.nodesource.com/setup_14.x
+        dest: /tmp/nodejs.sh
+    - name: Installing NodeJs
+      shell: 
+        cmd: /tmp/nodejs.sh
+    - name: Installing NodeJs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_item:
+        - nodejs
+        - build-essential
+    - name: Installing npm 
+      npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      with_item:
+        - forever
+        - apidoc
+    - name: Installing Apache2
+      apt:
+        name: apache2
+        state: present
+    - name: Enabling a2enmod
+      apache2_module: 
+        name: "{{item}}"
+        state: present
+      with_item:
+        - proxy 
+        - proxy_http
+        - headers
+    - name: Restarting Apache2
+      systemd:
+        name: apache2
+        state: restarted
+    - name: Installing Imagemagick
+      apt:
+        name: imagemagick
+        state: present 
+
+      
+     
+
+      

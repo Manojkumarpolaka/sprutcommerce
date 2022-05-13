@@ -14,9 +14,9 @@ sudo npm install apidoc -g
 
 ```
 sudo apt install apache2
-sudo a2enmod prox
-sudo a2enmod proxy_htt
-sudo a2enmod header
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod headers
 sudo systemctl restart apache2
 ```
 
