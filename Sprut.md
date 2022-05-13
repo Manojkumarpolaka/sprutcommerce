@@ -115,7 +115,7 @@ sudo NODE_ENV=production forever start dist/app.js
 
 * Upload **store** folder into the server root ( Like /home/ubuntu/ )
 
-* You need to open the file — `sudo vi Spurtcommerce_3.0.2_community_LTS/store/src/environments/environment.prod.ts` and then change the below URLs.
+* You need to open the file — `sudo vi spurtcommerce/store/src/environments/environment.prod.ts` and then change the below URLs.
 
 ![image](./Images/Capture1.PNG)
 
@@ -146,7 +146,7 @@ export const environment = {
 
 * Upload **admin** folder into the server root ( Like /home/ubuntu/ )
 
-* You need to open the file — `sudo vi Spurtcommerce_3.0.2_community_LTS/admin/src/environments/environment.prod.ts` and then change the below URLs.
+* You need to open the file — `sudo vi spurtcommerce/admin/src/environments/environment.prod.ts` and then change the below URLs.
 
 ![image](./Images/Capture2.PNG)
 
