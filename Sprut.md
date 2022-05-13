@@ -117,7 +117,7 @@ sudo NODE_ENV=production forever start dist/app.js
 
 * You need to open the file 
 ```
-sudo vi spurtcommerce/store/src/environments/environment.prod.ts
+sudo vi spurtcommerce/store/src/environments/environment.ts
 sudo vi spurtcommerce/store/src/environments/environment.prod.ts
 ```
 and then change the below URLs.
