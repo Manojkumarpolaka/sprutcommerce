@@ -76,18 +76,12 @@ ProxyRequests off
 
 <Location /backend>
 
-    ProxyPass http://127.0.0.1:9000 
-    ProxyPassReverse http://127.0.0.1:9000
+    ProxyPass http://127.0.0.1:8000 
+    ProxyPassReverse http://127.0.0.1:8000
 
 </Location>
 
 ```
-
-* Alter Project package.json file url and sample url
-
-“url”: “http://xxxxxxxx.com/yyyyyy",
-
-“sampleurl”: “http://xxxxxxxx.com/yyyyyy"
 
 * Create new database and import your sql file and set your root, database name and password in `.env.production` and `.env` file
 
@@ -95,20 +89,6 @@ ProxyRequests off
 npm install
 npm install typeorm-seeding@1.0.0-beta.6 -- save
 ```
-
-* In STORE_URL, you have to give store url path for navigating to order detail after payment
-
-* In CANCEL_URL, you have to give store base url path
-
-* In BASE_URL , you have to give api path
-
-* In STORE_REDIRECT_URL , you have to give the store base url path
-
-* In ADMIN_REDIRECT_URL , you have to give admin base url path
-
-* In VENDOR_REDIRECT_URL , you have to give vendor base url
-
-* In IMAGE_URL , you have to give image resize url path
 
 *  In STORE_FORGET_PASSWORD_URL , you have to give the store forgotten password reset url path (e.g:”https://<STOREURL>/setPassword/”).
 
@@ -122,7 +102,6 @@ cd spurtcommerce/
 sudo mysql -u root -p database_name <  spurtcommerce.sql
 ```
 ```
-npm start
 NODE_ENV=production node dist/app.js
 sudo NODE_ENV=production forever start dist/app.js
 ```
@@ -144,10 +123,8 @@ sudo NODE_ENV=production forever start dist/app.js
 export const environment = {
 
     production: true,
-    baseUrl: 'http://localhost:9000/api/',
-    imageUrl: 'http://localhost:9000/api/media/image-resize',
-    productUrl: 'http://localhost:4205/#/',
-    pluginUrl: 'http://localhost:9000'
+    storeUrl: 'http://localhost/backend/api/',
+    imageUrl: 'http://localhost/backend/api/media/image-resize'
 
 };
 
@@ -159,7 +136,7 @@ export const environment = {
 
 * `npm install` — By using this command, you will be installing the dependency libraries.
 
-* After installation of dependency libraries, you have to now build the Spurtcommerce Store application, using this command —  `ng build –prod`
+* After installation of dependency libraries, you have to now build the Spurtcommerce Store application, using this command —  `ng build --prod`
 
 * Once the build is successful, you will see a folder called dist. The files within that folder has to be moved to the server apache path — Path — `/var/www/html`
 
