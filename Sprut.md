@@ -141,9 +141,9 @@ export const environment = {
 
 * `npm install` — By using this command, you will be installing the dependency libraries.
 
-* After installation of dependency libraries, you have to now build the Spurtcommerce Store application, using this command —  `ng build --prod`
+* After installation of dependency libraries, you have to now build the Spurtcommerce Store application, using this command —  `npm run build`
 
-* Once the build is successful, you will see a folder called dist. The files within that folder has to be moved to the server apache path — Path — `/var/www/html`
+* Once the build is successful, you will see a folder called `dist`. The files within that folder has to be moved to the server apache path — Path — `/var/www/html`
 
 * After all the above steps are completed, you can open the browser and give the URL — http://<YOUR_IP_ADDRESS>. You will be able to check the store. 
 
