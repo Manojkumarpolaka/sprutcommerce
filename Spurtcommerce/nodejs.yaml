@@ -1,0 +1,24 @@
+---
+- name: Installing Spurt Commerce
+  hosts: all
+  become: yes
+  tasks:
+    - name: Updating Repo URLs
+      apt:
+        update_cache: yes
+        state: present
+    - name: Installing NodeJs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_item:
+        - nodejs
+        - build-essential
+    - name: Installing npm 
+      npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      with_item:
+        - forever
+        - apidoc

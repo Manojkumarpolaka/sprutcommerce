@@ -1,0 +1,58 @@
+---
+- name: Deploying spurtcommerce
+  hosts: all
+  become: yes
+  tasks:
+    - name: Downloading spurtcommerce
+      git:
+        repo: 'https://github.com/Manojkumarpolaka/spurtcommerce.git'
+        dest: /home/devops/
+        clone: yes
+    - name: Installing unzip
+      apt:
+        name: unzip
+        state: present
+    - name: Extracting spurtcommerce
+      unarchive: 
+        src: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS.zip
+        dest: /home/devops/spurtcommerce/
+        remote_src: yes
+    - name: changing user and group
+      file: 
+        path: /home/devops/spurtcommerce/
+        owner: $USER
+        group: $USER
+        recurse: yes
+    - name: Install packages based on package.json for backend API.
+      npm:
+        path: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/api
+        state: latest
+    - name: Building the application for backend API
+      command:
+        chdir: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/api 
+        cmd: npm install typeorm-seeding@1.0.0-beta.6 -- save
+    - name: Building the application for backend API
+      command:
+        chdir: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/api 
+        cmd: npm run build
+    - name: changing URLs for store and image in environment.ts
+      template:
+        src: 'environment.ts.j2'
+        dest: 'spurtcommerce/Spurtcommerce_3.0.2_community_LTS/store/src/environments/environment.ts'
+    - name: Setting reverse proxy
+      template:
+        src: changing URLs for store and image in environment.ts.prod
+        dest: 'spurtcommerce/Spurtcommerce_3.0.2_community_LTS/store/src/environments/environment.prod.ts'
+    - name: Install packages based on package.json for Frontend store.
+      npm:
+        path: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/store
+        state: latest
+    - name: Building the application Frontend store
+      command:
+        chdir: /home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/store
+        cmd: npm run build
+    - name: Copying files from dist to html folder
+      copy:
+        src: '/home/devops/spurtcommerce/Spurtcommerce_3.0.2_community_LTS/store/dist/browser/*'
+        dest: '/var/www/html/'
+
