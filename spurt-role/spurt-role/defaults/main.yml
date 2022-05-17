@@ -1,0 +1,26 @@
+---
+nodejs_version: 14
+node_key: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+key_id: 68576280
+node_repository: https://deb.nodesource.com/node_{{ nodejs_version }}.x
+nodejs_packages:         
+- nodejs
+- build-essential
+npm_dependencies:         
+- forever
+- apidoc
+apache_mods:
+- proxy 
+- proxy_http
+- headers
+apache_proxy: /etc/apache2/sites-available/000-default.conf
+angular: '@angular/cli'
+login_socket: /var/run/mysqld/mysqld.sock
+mysql_user: root
+mysql_password: Testuser@123
+spurtcommerce_path: /home/devops/spurtcommerce
+db_name: spurtcommerce
+spurt_repo: 'https://github.com/Manojkumarpolaka/spurtcommerce.git'
+spurt_version: 3.0.
+storeUrl: 'http://localhost/backend/api/'
+imageUrl: 'http://localhost/backend/api/media/image-resize'

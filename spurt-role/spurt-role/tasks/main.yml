@@ -1,0 +1,9 @@
+---
+- include_tasks: setup_debian.yaml
+  when: ansible_facts['os_family'] == "Debian"
+- include_tasks: nodejs.yaml
+- include_tasks: apache.yaml
+- include_tasks: angular.yaml
+- include_tasks: imagmagic.yaml
+- include_tasks: mysql.yaml
+- include_tasks: spurt.yaml

@@ -1,0 +1,4 @@
+---
+- name: Updating cache and repositories url 
+  apt: 
+    update_cache: yes

@@ -16,16 +16,25 @@
       mysql_user:
         name: root
         login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: root
+        login_password: Testuser@123
         host: 'localhost'
-        password: abc123
+        password: Testuser@123
         priv: "*.*:ALL,GRANT"
         check_implicit_admin: true
-    - name: Creating user
+        state: present
+    - name: Creating user 
       mysql_user:
         login_user: root
-        login_password: abc123
+        login_password: Testuser@123
         name: spurtcommerce
         password: spurtcommerce
         host: '%'
         priv: "*.*:ALL,GRANT"
+        state: present
+    - name: Creating user 
+      mysql_db:
+        login_user: root
+        login_password: Testuser@123
+        name: spurtcommerce
         state: present

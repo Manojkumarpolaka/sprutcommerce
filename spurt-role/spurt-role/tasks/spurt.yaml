@@ -1,0 +1,87 @@
+---
+- name: Setting Git Repo user name
+  git_config:
+    name: user.name
+    repo: "{{ spurtcommerce_path }}"
+    scope: global
+    value: 'spurtcommerce'
+- name: Setting Git Repo user safe.directory
+  git_config:
+    name: safe.directory
+    repo: "{{ spurtcommerce_path }}"
+    scope: global
+- name: Setting Git Repo user email
+  git_config:
+    name: user.email
+    repo: "{{ spurtcommerce_path }}"
+    scope: global
+    value: 'spurtcommerce@gmail.com'
+- name: Downloading spurtcommerce
+  git:
+    repo: "{{ spurt_repo }}"
+    dest: "{{ spurtcommerce_path }}"
+    clone: yes
+- name: Installing unzip
+  apt:
+    name: unzip
+    state: present
+- name: Extracting spurtcommerce
+  unarchive: 
+    src: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS.zip"
+    dest: "{{ spurtcommerce_path }}"
+    remote_src: yes
+- name: changing user and group
+  file: 
+    path: "{{ spurtcommerce_path }}"
+    owner: devops
+    group: devops
+    recurse: yes
+- name: Adding DB username, password and database in .env
+  template:
+    src: '.env.j2'
+    dest: 'spurtcommerce/Spurtcommerce_{{spurt_version}}_community_LTS/api/.env'
+- name: Adding DB username, password and database in .env.production 
+  template:
+    src: '.env.production.j2'
+    dest: 'spurtcommerce/Spurtcommerce_{{spurt_version}}_community_LTS/api/.env.production'
+- name: Install packages based on package.json for backend API.
+  npm:
+    path: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+    state: latest
+- name: Building the application for backend API
+  command:
+    chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+    cmd: npm install typeorm-seeding@1.0.0-beta.6 -- save
+- name: Building the application for backend API
+  command:
+    chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+    cmd: npm run build
+- name: changing URLs for store and image in environment.ts
+  template:
+    src: 'environment.ts.j2'
+    dest: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/src/environments/environment.ts"
+- name: changing URLs for store and image in environment.ts.prod
+  template:
+    src: 'environment.prod.ts.j2'
+    dest: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/src/environments/environment.prod.ts"
+- name: Install packages based on package.json for Frontend store.
+  npm:
+    path: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store"
+    state: latest
+- name: Building the application Frontend store
+  command:
+    chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store"
+    cmd: npm run build
+- name: Copying files from dist to html folder
+  copy:
+    src: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/dist/browser/"
+    dest: '/var/www/html/'
+    remote_src: yes
+- name: import the database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: import
+    target: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/spurtcommerce.sql"
+    login_host: 'localhost'
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"

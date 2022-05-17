@@ -1,0 +1,9 @@
+---
+- name: Installing Image magick
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installing angular
+      apt:
+        name: imagemagick
+        state: present

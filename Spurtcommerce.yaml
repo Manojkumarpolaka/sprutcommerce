@@ -1,0 +1,198 @@
+---
+- name: Installing Spurt Commerce
+  hosts: all
+  become: true
+  vars:
+    - nodejs_version: 14
+    - node_key: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+    - key_id: 68576280
+    - node_repository: https://deb.nodesource.com/node_{{ nodejs_version }}.x
+    - nodejs_packages:         
+        - nodejs
+        - build-essential
+    - npm_dependencies:         
+        - forever
+        - apidoc
+    - apache_mods:
+        - proxy 
+        - proxy_http
+        - headers
+    - apache_proxy: /etc/apache2/sites-available/000-default.conf
+    - angular: '@angular/cli'
+    - login_socket: /var/run/mysqld/mysqld.sock
+    - mysql_user: root
+    - mysql-password: Testuser@123
+    - spurtcommerce_path: /home/devops/spurtcommerce
+    - db_name: spurtcommerce
+    - spurt_repo: 'https://github.com/Manojkumarpolaka/spurtcommerce.git'
+    - spurt_version: 3.0.2
+  tasks:
+    - name: Add Nodesource apt key.
+      apt_key:
+        url: "{{node_key}}"
+        id: "{{key_id}}"
+        state: present
+    - name: Add NodeSource repositories for Node.js.
+      apt_repository:
+        repo: "{{ item }}"
+        state: present
+      with_items:
+        - "deb {{ node_repository }} {{ ansible_distribution_release }} main"
+        - "deb-src {{ node_repository }} {{ ansible_distribution_release }} main"
+      register: node_repo
+    - name: Update apt cache if repo was added.
+      apt: 
+        update_cache: yes
+      when: node_repo.changed
+      tags: ['skip_ansible_lint']
+    - name: Installing NodeJs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{nodejs_packages}}"
+    - name: Installing npm 
+      npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      with_items: "{{ npm_dependencies }}"
+    - name: Installing Apache2
+      apt:
+        name: apache2
+        state: present
+    - name: Enabling a2enmod
+      apache2_module: 
+        name: "{{item}}"
+        state: present
+      with_items: "{{ apache_mods }}"
+    - name: started Apache2
+      systemd:
+        name: apache2
+        state: started
+    - name: Setting reverse proxy
+      template:
+        src: '000-default.conf.j2'
+        dest: "{{ apache_proxy }}"
+      notify:
+        - daemon-reload and restart apache2
+    - name: Installing angular
+      npm:
+        name: "{{ angular }}"
+        state: present
+        global: yes
+    - name: Installing imagemagick
+      apt:
+        name: imagemagick
+        state: present
+    - name: Installing mysql 
+      apt:
+        update_cache: yes
+        name: mysql-server
+        state: present
+    - name: Install python3-PyMySQL library
+      apt:
+        name: python3-pymysql
+        state: present
+    - name: update mysql root password for root account
+      mysql_user:
+        name: "{{ mysql_user }}"
+        login_unix_socket: "{{ login_socket }}"
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql-password }}"
+        host: 'localhost'
+        password: "{{ mysql-password }}"
+        priv: "*.*:ALL,GRANT"
+        check_implicit_admin: true
+        state: present
+    - name: Setting Git Repo user name
+      git_config:
+        name: user.name
+        repo: "{{ spurtcommerce_path }}"
+        scope: global
+        value: 'spurtcommerce'
+    - name: Setting Git Repo user safe.directory
+      git_config:
+        name: safe.directory
+        repo: "{{ spurtcommerce_path }}"
+        scope: global
+    - name: Setting Git Repo user email
+      git_config:
+        name: user.email
+        repo: "{{ spurtcommerce_path }}"
+        scope: global
+        value: 'spurtcommerce@gmail.com'
+    - name: Downloading spurtcommerce
+      git:
+        repo: "{{ spurt_repo }}"
+        dest: "{{ spurtcommerce_path }}"
+        clone: yes
+    - name: Installing unzip
+      apt:
+        name: unzip
+        state: present
+    - name: Extracting spurtcommerce
+      unarchive: 
+        src: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS.zip"
+        dest: "{{ spurtcommerce_path }}"
+        remote_src: yes
+    - name: changing user and group
+      file: 
+        path: "{{ spurtcommerce_path }}"
+        owner: devops
+        group: devops
+        recurse: yes
+    - name: Adding DB username, password and database in .env
+      template:
+        src: '.env.j2'
+        dest: 'spurtcommerce/Spurtcommerce_{{spurt_version}}_community_LTS/api/.env'
+    - name: Adding DB username, password and database in .env.production 
+      template:
+        src: '.env.production.j2'
+        dest: 'spurtcommerce/Spurtcommerce_{{spurt_version}}_community_LTS/api/.env.production'
+    - name: Install packages based on package.json for backend API.
+      npm:
+        path: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+        state: latest
+    - name: Building the application for backend API
+      command:
+        chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+        cmd: npm install typeorm-seeding@1.0.0-beta.6 -- save
+    - name: Building the application for backend API
+      command:
+        chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/api"
+        cmd: npm run build
+    - name: changing URLs for store and image in environment.ts
+      template:
+        src: 'environment.ts.j2'
+        dest: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/src/environments/environment.ts"
+    - name: changing URLs for store and image in environment.ts.prod
+      template:
+        src: 'environment.prod.ts.j2'
+        dest: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/src/environments/environment.prod.ts"
+    - name: Install packages based on package.json for Frontend store.
+      npm:
+        path: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store"
+        state: latest
+    - name: Building the application Frontend store
+      command:
+        chdir: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store"
+        cmd: npm run build
+    - name: Copying files from dist to html folder
+      copy:
+        src: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/store/dist/browser/"
+        dest: '/var/www/html/'
+        remote_src: yes
+    - name: import the database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: import
+        target: "{{ spurtcommerce_path }}/Spurtcommerce_{{spurt_version}}_community_LTS/spurtcommerce.sql"
+        login_host: 'localhost'
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql-password }}"
+  handlers:
+    - name: daemon-reload and restart apache2
+      systemd:
+        name: apache2
+        daemon-reload: yes
+        state: restarted

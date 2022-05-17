@@ -1,0 +1,5 @@
+---
+- name: Installing imagemagick
+  apt:
+    name: imagemagick
+    state: present

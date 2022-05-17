@@ -1,8 +1,109 @@
 ---
-- name: Deploying spurtcommerce
+- name: Installing Spurt Commerce
   hosts: all
   become: yes
+  vars:
+    - nodejs_version: 14
   tasks:
+    - name: Add Nodesource apt key.
+      apt_key:
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+        id: "68576280"
+        state: present
+    - name: Add NodeSource repositories for Node.js.
+      apt_repository:
+        repo: "{{ item }}"
+        state: present
+      with_items:
+        - "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main"
+        - "deb-src https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main"
+      register: node_repo
+    - name: Update apt cache if repo was added.
+      apt: 
+        update_cache: yes
+      when: node_repo.changed
+      tags: ['skip_ansible_lint']
+    - name: Installing NodeJs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - nodejs
+        - build-essential
+    - name: Installing npm 
+      npm:
+        name: "{{ item }}"
+        state: present
+        global: yes
+      with_items:
+        - forever
+        - apidoc
+    - name: Installing Apache2
+      apt:
+        name: apache2
+        state: present
+    - name: Enabling a2enmod
+      apache2_module: 
+        name: "{{item}}"
+        state: present
+      with_items:
+        - proxy 
+        - proxy_http
+        - headers
+    - name: started Apache2
+      systemd:
+        name: apache2
+        state: started
+    - name: Setting reverse proxy
+      template:
+        src: '000-default.conf.j2'
+        dest: /etc/apache2/sites-available/000-default.conf
+      notify:
+        - daemon-reload and restart apache2
+    - name: Installing angular
+      npm:
+        name: '@angular/cli'
+        state: present
+        global: yes
+    - name: Installing angular
+      apt:
+        name: imagemagick
+        state: present
+    - name: Installing mysql 
+      apt:
+        update_cache: yes
+        name: mysql-server
+        state: present
+    - name: Install python3-PyMySQL library
+      apt:
+        name: python3-pymysql
+        state: present
+    - name: update mysql root password for root account
+      mysql_user:
+        name: root
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: root
+        login_password: Testuser@123
+        host: 'localhost'
+        password: Testuser@123
+        priv: "*.*:ALL,GRANT"
+        check_implicit_admin: true
+        state: present
+    - name: Creating user 
+      mysql_user:
+        login_user: root
+        login_password: Testuser@123
+        name: spurtcommerce
+        password: spurtcommerce
+        host: '%'
+        priv: "*.*:ALL,GRANT"
+        state: present
+    - name: Creating user 
+      mysql_db:
+        login_user: root
+        login_password: Testuser@123
+        name: spurtcommerce
+        state: present
     - name: Setting Git Repo
       git_config:
         name: user.name
@@ -89,4 +190,9 @@
         login_host: 'localhost'
         login_user: root
         login_password: 'Testuser@123'
-
+  handlers:
+    - name: daemon-reload and restart apache2
+      systemd:
+        name: apache2
+        daemon-reload: yes
+        state: restarted

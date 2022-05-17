@@ -1,0 +1,6 @@
+---
+- name: Installing angular
+  npm:
+    name: "{{ angular }}"
+    state: present
+    global: yes

@@ -1,0 +1,20 @@
+---
+- name: Installing Apache2
+  apt:
+    name: apache2
+    state: present
+- name: Enabling a2enmod
+  apache2_module: 
+    name: "{{item}}"
+    state: present
+  with_items: "{{ apache_mods }}"
+- name: started Apache2
+  systemd:
+    name: apache2
+    state: started
+- name: Setting reverse proxy
+  template:
+    src: '000-default.conf.j2'
+    dest: "{{ apache_proxy }}"
+  notify:
+    - daemon-reload and restart apache2
